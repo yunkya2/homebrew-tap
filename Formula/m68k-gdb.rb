@@ -16,6 +16,7 @@ class M68kGdb < Formula
       --without-python
       --with-gmp=#{Formula["gmp"].opt_prefix}
       --with-mpfr=#{Formula["mpfr"].opt_prefix}
+      --with-system-zlib
     ]
 
     mkdir "build" do
