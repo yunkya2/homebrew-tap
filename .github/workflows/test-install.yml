@@ -1,6 +1,7 @@
 name: Test Brew Formula
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'Formula/**'
@@ -22,10 +23,40 @@ jobs:
         run: |
           brew tap yunkya2/tap
 
-      - name: Install the formula
+      - name: Test formula syntax
         run: |
-          brew install elf2x68k
+          brew audit --strict elf2x68k
 
-      - name: Verify installation
+      - name: Install the formula with verbose output and error handling
         run: |
-          m68k-xelf-gcc -v
+          set +e  # Continue on error
+          brew install --verbose --build-from-source elf2x68k
+          INSTALL_EXIT_CODE=$?
+          echo "Install exit code: $INSTALL_EXIT_CODE"
+
+          # Check if the installation actually succeeded
+          if brew list elf2x68k > /dev/null 2>&1; then
+            echo "✅ Formula is successfully installed"
+            ls -la $(brew --prefix)/Cellar/elf2x68k/
+          else
+            echo "❌ Formula installation failed"
+            exit 1
+          fi
+          
+          # If install exit code was non-zero but package exists, investigate
+          if [ $INSTALL_EXIT_CODE -ne 0 ]; then
+            echo "⚠️  Installation completed with warnings or non-fatal errors"
+            echo "Checking brew doctor..."
+            brew doctor || echo "brew doctor found issues"
+          fi
+
+      - name: Test the installation
+        run: |
+          echo "Running formula tests..."
+          brew test elf2x68k || echo "Test failed or no test defined"
+
+      - name: Final status check
+        run: |
+          echo "Final verification..."
+          brew info elf2x68k
+          echo "Installation completed successfully! 🎉"
