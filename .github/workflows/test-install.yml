@@ -5,23 +5,18 @@ on:
   push:
     paths:
       - 'Formula/**'
+      - '.github/workflows/test-install.yml'
   pull_request:
     paths:
       - 'Formula/**'
+      - '.github/workflows/test-install.yml'
 
 jobs:
   test-install:
     runs-on: macos-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Set up Homebrew
-        uses: Homebrew/actions/setup-homebrew@master
-
-      - name: Tap the repository
-        run: |
-          brew tap yunkya2/tap
+        uses: Homebrew/actions/setup-homebrew@848c272c7bfe984a197bd4d16383f4c106ec61e6 # 2026.09.21.1
 
       - name: Test formula syntax
         run: |
@@ -42,7 +37,7 @@ jobs:
             echo "❌ Formula installation failed"
             exit 1
           fi
-          
+
           # If install exit code was non-zero but package exists, investigate
           if [ $INSTALL_EXIT_CODE -ne 0 ]; then
             echo "⚠️  Installation completed with warnings or non-fatal errors"
@@ -53,7 +48,7 @@ jobs:
       - name: Test the installation
         run: |
           echo "Running formula tests..."
-          brew test elf2x68k || echo "Test failed or no test defined"
+          brew test elf2x68k
 
       - name: Final status check
         run: |
